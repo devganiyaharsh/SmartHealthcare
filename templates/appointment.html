@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appointments – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  .badge-pending  { background:#fef3c7; color:#b45309; }
+  .badge-accepted { background:#dcfce7; color:#16a34a; }
+  .badge-rejected { background:#fee2e2; color:#dc2626; }
+  .badge-cancelled{ background:#f1f5f9; color:#64748b; }
+  .badge-completed{ background:#e0f2fe; color:#0284c7; }
+  #notifyArea { position:fixed; top:16px; right:16px; z-index:2000; width:320px; display:flex; flex-direction:column; gap:8px; }
+  #notifyArea .alert { box-shadow:0 4px 14px rgba(0,0,0,.12); }
+</style>
+</head>
+<body>
+<div class="layout">
+  {% include '_sidebar.html' %}
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">📅 Appointment Management</div>
+      <div class="topbar-right">
+        <div class="user-avatar">{{ session.user_name[0].upper() }}</div>
+      </div>
+    </div>
+
+    <div id="notifyArea"></div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <div class="grid-2">
+        <!-- Booking Form -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📝 Book New Appointment</span>
+          </div>
+          <div class="card-body">
+            <form method="POST">
+              <div class="form-group">
+                <label class="form-label">Select Doctor *</label>
+                <select name="doctor_id" class="form-control" required
+                        onchange="document.getElementById('deptDisplay').value = this.options[this.selectedIndex].dataset.dept || ''">
+                  <option value="">Select Doctor</option>
+                  {% for d in doctors %}
+                  <option value="{{ d.id }}" data-dept="{{ d.department }}">{{ d.name }} — {{ d.department }}</option>
+                  {% endfor %}
+                </select>
+                {% if not doctors %}
+                <small style="color:#dc2626">No doctors registered yet. Ask a doctor to register at /doctor/register.</small>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department / Speciality</label>
+                <input type="text" id="deptDisplay" class="form-control" placeholder="Auto-filled on doctor select" readonly>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Appointment Date *</label>
+                  <input type="date" name="date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Preferred Time *</label>
+                  <input type="time" name="time" class="form-control" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Reason / Symptoms</label>
+                <textarea name="reason" class="form-control" rows="3" placeholder="Brief description of your issue..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-success btn-block">
+                ✅ Send Appointment Request
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div>
+          <div class="card mb-3">
+            <div class="card-header"><span class="card-title">💡 Booking Tips</span></div>
+            <div class="card-body">
+              <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+                <li style="display:flex;gap:10px;font-size:.875rem">
+                  <span>🕐</span> Book at least 24 hours in advance for planned visits
+                </li>
+                <li style="display:flex;gap:10px;font-size:.875rem">
+                  <span>📋</span> Carry your previous prescription if applicable
+                </li>
+                <li style="display:flex;gap:10px;font-size:.875rem">
+                  <span>🤖</span> Use AI Prediction to find the right specialist
+                </li>
+                <li style="display:flex;gap:10px;font-size:.875rem">
+                  <span>🔔</span> Your appointment stays <strong>Pending</strong> until the doctor accepts it
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">📊 Stats</span></div>
+            <div class="card-body">
+              {% set pend = appointments|selectattr('status','equalto','Pending')|list|length %}
+              {% set acc  = appointments|selectattr('status','equalto','Accepted')|list|length %}
+              {% set rej  = appointments|selectattr('status','equalto','Rejected')|list|length %}
+              <div style="display:flex;gap:14px;flex-wrap:wrap">
+                <div style="flex:1;background:#fef3c7;border-radius:10px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:800;color:#b45309;font-family:Poppins">{{ pend }}</div>
+                  <div style="font-size:.75rem;color:#b45309">Pending</div>
+                </div>
+                <div style="flex:1;background:#dcfce7;border-radius:10px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:800;color:#16a34a;font-family:Poppins">{{ acc }}</div>
+                  <div style="font-size:.75rem;color:#15803d">Accepted</div>
+                </div>
+                <div style="flex:1;background:#fee2e2;border-radius:10px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:800;color:#dc2626;font-family:Poppins">{{ rej }}</div>
+                  <div style="font-size:.75rem;color:#b91c1c">Rejected</div>
+                </div>
+                <div style="flex:1;background:#e0f2fe;border-radius:10px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:800;color:#0284c7;font-family:Poppins">{{ appointments|length }}</div>
+                  <div style="font-size:.75rem;color:#0369a1">Total</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments List -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <span class="card-title">📋 All Appointments</span>
+          <span style="font-size:.82rem;color:#64748b">{{ appointments|length }} total</span>
+        </div>
+        <div class="card-body" style="padding:0">
+          {% if appointments %}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Doctor</th>
+                  <th>Department</th>
+                  <th>Date & Time</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Doctor Note</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for a in appointments %}
+              <tr>
+                <td style="color:#94a3b8;font-size:.78rem">{{ loop.index }}</td>
+                <td><strong>{{ a.doctor_name }}</strong></td>
+                <td style="font-size:.82rem;color:#475569">{{ a.department }}</td>
+                <td>
+                  <div style="font-weight:600;font-size:.875rem">{{ a.date }}</div>
+                  <div style="font-size:.75rem;color:#94a3b8">{{ a.time }}</div>
+                </td>
+                <td style="font-size:.82rem;color:#64748b;max-width:180px">{{ a.reason or '—' }}</td>
+                <td><span class="badge badge-{{ a.status.lower() }}">{{ a.status }}</span></td>
+                <td style="font-size:.8rem;color:#64748b;max-width:160px">{{ a.doctor_note or '—' }}</td>
+                <td>
+                  {% if a.status in ['Pending', 'Accepted'] %}
+                  <a href="{{ url_for('cancel_appointment', apt_id=a.id) }}"
+                     onclick="return confirm('Cancel this appointment?')"
+                     class="btn btn-danger btn-sm">Cancel</a>
+                  {% else %}
+                  <span style="color:#94a3b8;font-size:.8rem">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div style="padding:48px;text-align:center;color:#94a3b8">
+            <div style="font-size:3rem">📅</div>
+            <p style="margin-top:12px;font-size:.9rem">No appointments yet</p>
+            <p style="font-size:.82rem;margin-top:6px">Book your first appointment using the form above</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Set min date to today
+document.querySelector('input[type="date"]').min = new Date().toISOString().split('T')[0];
+
+// Live-poll for doctor responses (accept/reject) every 15s
+async function pollPatientNotifications() {
+  try {
+    const res = await fetch("{{ url_for('patient_notifications') }}");
+    const data = await res.json();
+    const area = document.getElementById('notifyArea');
+    data.notifications.forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'alert alert-info';
+      div.innerHTML = `${n.message}
+        <div style="text-align:right;margin-top:6px">
+          <button class="btn btn-sm btn-primary" onclick="location.reload()">Refresh</button>
+        </div>`;
+      area.appendChild(div);
+      // mark as read on the server so it doesn't repeat
+      fetch(`/api/patient/notifications/${n.id}/read`);
+      setTimeout(() => div.remove(), 12000);
+    });
+  } catch (e) { /* silent */ }
+}
+setInterval(pollPatientNotifications, 15000);
+pollPatientNotifications();
+</script>
+</body>
+</html>

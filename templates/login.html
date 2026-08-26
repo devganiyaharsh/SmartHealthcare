@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-hero">
+      <h1>Welcome Back to<br><span>SmartHealthcare</span></h1>
+      <p>Sign in to access your personalized health dashboard, view predictions, and manage appointments.</p>
+      <ul class="feature-list">
+        <li><span class="check">✓</span> AI-Powered Disease Prediction</li>
+        <li><span class="check">✓</span> Real-time Health Analytics</li>
+        <li><span class="check">✓</span> Appointment Management</li>
+        <li><span class="check">✓</span> Secure Health Records</li>
+      </ul>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="logo-icon">🏥</div>
+        <h2>Sign In</h2>
+        <p>Enter your credentials to continue</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">
+          {% if cat == 'success' %}✅{% elif cat == 'danger' %}❌{% else %}ℹ️{% endif %}
+          {{ msg }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px">
+          🔐 Sign In
+        </button>
+      </form>
+
+      <div class="divider"></div>
+      <p class="text-center text-muted" style="font-size:.875rem">
+        Don't have an account?
+        <a href="{{ url_for('register') }}" style="font-weight:600">Create one free →</a>
+      </p>
+      <p class="text-center mt-2">
+        <a href="{{ url_for('index') }}" style="font-size:.8rem;color:#94a3b8">← Back to Home</a>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

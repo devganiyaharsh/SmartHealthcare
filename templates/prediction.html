@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Prediction – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="layout">
+  {% include '_sidebar.html' %}
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">🤖 AI Disease Prediction</div>
+      <div class="topbar-right">
+        <div class="user-avatar">{{ session.user_name[0].upper() }}</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Info Banner -->
+      <div style="background:linear-gradient(135deg,#e0f2fe,#f0fdf4);border:1px solid #bae6fd;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;gap:14px;align-items:center">
+        <div style="font-size:1.8rem">💡</div>
+        <div>
+          <strong>How it works:</strong> Select all the symptoms you are currently experiencing. Our Random Forest ML model will analyze your symptoms and predict the most likely disease with confidence score.
+        </div>
+      </div>
+
+      <form method="POST">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Select Your Symptoms</span>
+            <span id="selected-count" style="font-size:.82rem;color:#64748b;background:#f1f5f9;padding:4px 12px;border-radius:20px">0 selected</span>
+          </div>
+          <div class="card-body">
+            <div class="symptom-grid">
+              {% set icons = {
+                'fever':'🌡️', 'cough':'😮‍💨', 'headache':'🤕', 'fatigue':'😴',
+                'body_pain':'💪', 'nausea':'🤢', 'vomiting':'🤮', 'diarrhea':'🚽',
+                'chest_pain':'💔', 'shortness_of_breath':'😮', 'rash':'🩹',
+                'sweating':'💦', 'chills':'🥶', 'loss_of_appetite':'🍽️', 'joint_pain':'🦴'
+              } %}
+              {% for sym in symptoms %}
+              <div>
+                <input type="checkbox" class="symptom-check" name="symptoms" value="{{ sym }}" id="sym_{{ sym }}">
+                <label class="symptom-label" for="sym_{{ sym }}">
+                  <span class="sym-icon">{{ icons.get(sym, '🩺') }}</span>
+                  {{ sym.replace('_',' ').title() }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center">
+              <button type="submit" class="btn btn-primary btn-lg">
+                🔬 Analyze Symptoms & Predict
+              </button>
+              <button type="button" onclick="clearAll()" class="btn btn-outline">
+                🗑️ Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      {% if result %}
+      <div class="result-card" id="result">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px">
+          <div>
+            <div style="font-size:.78rem;font-weight:600;color:#0284c7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">🎯 Predicted Condition</div>
+            <div class="result-disease">{{ result.disease }}</div>
+            <div style="font-size:.9rem;color:#475569;margin-top:4px">Based on {{ result.symptoms_selected|length }} symptoms selected</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:2.4rem;font-weight:800;font-family:Poppins;color:#0ea5e9">{{ result.confidence }}%</div>
+            <div style="font-size:.78rem;color:#64748b">Confidence</div>
+          </div>
+        </div>
+
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width:{{ result.confidence }}%"></div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">🏥 Specialist</div>
+            <div class="value">{{ result.specialist }}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">⚠️ Severity</div>
+            <div class="value">
+              <span class="badge badge-{{ result.severity.lower() }}">{{ result.severity }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="label">💊 Precautions</div>
+            <div class="value" style="font-size:.82rem">{{ result.precautions }}</div>
+          </div>
+        </div>
+
+        {% if result.top3 %}
+        <div style="margin-top:20px">
+          <div style="font-size:.82rem;font-weight:600;color:#475569;margin-bottom:12px">📊 Top 3 Possible Conditions</div>
+          {% for disease, conf in result.top3 %}
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <div style="width:140px;font-size:.85rem;font-weight:{% if loop.first %}700{% else %}400{% endif %}">{{ disease }}</div>
+            <div style="flex:1;background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden">
+              <div style="width:{{ conf }}%;height:100%;background:{% if loop.first %}linear-gradient(90deg,#0ea5e9,#10b981){% else %}#94a3b8{% endif %};border-radius:4px"></div>
+            </div>
+            <div style="font-size:.82rem;font-weight:600;width:48px;text-align:right">{{ conf }}%</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="margin-top:20px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;display:flex;gap:10px">
+          <span style="font-size:1.2rem">⚠️</span>
+          <p style="font-size:.82rem;color:#b91c1c"><strong>Medical Disclaimer:</strong> This AI prediction is for informational purposes only. Please consult a certified medical professional for diagnosis and treatment.</p>
+        </div>
+
+        <div style="margin-top:16px">
+          <a href="{{ url_for('appointment') }}" class="btn btn-success">📅 Book Appointment with {{ result.specialist }}</a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+const checks = document.querySelectorAll('.symptom-check');
+const counter = document.getElementById('selected-count');
+
+function updateCount() {
+  const n = document.querySelectorAll('.symptom-check:checked').length;
+  counter.textContent = n + ' selected';
+  counter.style.background = n > 0 ? '#dbeafe' : '#f1f5f9';
+  counter.style.color = n > 0 ? '#1d4ed8' : '#64748b';
+}
+
+checks.forEach(c => c.addEventListener('change', updateCount));
+
+function clearAll() {
+  checks.forEach(c => c.checked = false);
+  updateCount();
+}
+
+{% if result %}
+document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+{% endif %}
+</script>
+</body>
+</html>

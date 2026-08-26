@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-hero">
+      <h1>Join <span>SmartHealthcare</span> Today</h1>
+      <p>Create your account and get instant access to AI-powered health tools that help you stay ahead of diseases.</p>
+      <ul class="feature-list">
+        <li><span class="check">✓</span> Free disease prediction using AI</li>
+        <li><span class="check">✓</span> Book doctor appointments</li>
+        <li><span class="check">✓</span> Personal health reports & analytics</li>
+        <li><span class="check">✓</span> 100% secure & private data</li>
+      </ul>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card" style="max-width:480px">
+      <div class="auth-brand">
+        <div class="logo-icon">🏥</div>
+        <h2>Create Account</h2>
+        <p>Fill in your details to get started</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Harsh Patel" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" name="email" class="form-control" placeholder="harsh@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input type="number" name="age" class="form-control" placeholder="22" min="1" max="120">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select name="gender" class="form-control">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="9XXXXXXXXX">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Blood Group</label>
+            <select name="blood_group" class="form-control">
+              <option value="">Select</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option>
+              <option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success btn-block btn-lg" style="margin-top:4px">
+          🚀 Create Account
+        </button>
+      </form>
+
+      <div class="divider"></div>
+      <p class="text-center text-muted" style="font-size:.875rem">
+        Already have an account?
+        <a href="{{ url_for('login') }}" style="font-weight:600">Sign in →</a>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

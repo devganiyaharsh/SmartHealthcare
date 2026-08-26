@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Flask database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# VS Code
+.vscode/
+
+# Android Studio
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml

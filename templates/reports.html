@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="layout">
+  {% include '_sidebar.html' %}
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">📊 Health Reports & Analytics</div>
+      <div class="topbar-right">
+        <div class="user-avatar">{{ session.user_name[0].upper() }}</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Summary Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">🔬</div>
+          <div>
+            <div class="stat-value">{{ predictions|length }}</div>
+            <div class="stat-label">Total Predictions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📅</div>
+          <div>
+            <div class="stat-value">{{ appointments|length }}</div>
+            <div class="stat-label">Total Appointments</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">🦠</div>
+          <div>
+            <div class="stat-value">{{ disease_counts|length }}</div>
+            <div class="stat-label">Unique Conditions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">📈</div>
+          <div>
+            <div class="stat-value">
+              {% if predictions %}
+                {{ (predictions | map(attribute='confidence') | sum / predictions|length)|round(1) }}%
+              {% else %}—{% endif %}
+            </div>
+            <div class="stat-label">Avg Confidence</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🦠 Disease Distribution</span></div>
+          <div class="card-body">
+            {% if disease_counts %}
+            <div class="chart-container">
+              <canvas id="diseaseChart"></canvas>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:40px;color:#94a3b8">No data yet</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">📊 Confidence Trend</span></div>
+          <div class="card-body">
+            {% if predictions %}
+            <div class="chart-container">
+              <canvas id="confidenceChart"></canvas>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:40px;color:#94a3b8">No data yet</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Predictions History -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <span class="card-title">🔬 Prediction History</span>
+          <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-sm">+ New Prediction</a>
+        </div>
+        <div class="card-body" style="padding:0">
+          {% if predictions %}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Disease Predicted</th>
+                  <th>Confidence</th>
+                  <th>Severity</th>
+                  <th>Specialist</th>
+                  <th>Symptoms</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for p in predictions %}
+              <tr>
+                <td style="color:#94a3b8;font-size:.78rem">{{ loop.index }}</td>
+                <td><strong>{{ p.disease }}</strong></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:70px;background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden">
+                      <div style="width:{{ p.confidence }}%;height:100%;background:linear-gradient(90deg,#0ea5e9,#10b981)"></div>
+                    </div>
+                    <span style="font-size:.82rem;font-weight:600">{{ p.confidence }}%</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-{{ p.severity.lower() }}">{{ p.severity }}</span></td>
+                <td style="font-size:.82rem;color:#475569">{{ p.specialist }}</td>
+                <td style="font-size:.75rem;color:#64748b;max-width:200px">
+                  {{ p.symptoms[:60] }}{% if p.symptoms|length > 60 %}...{% endif %}
+                </td>
+                <td style="font-size:.78rem;color:#64748b">{{ p.created_at.strftime('%d %b %Y') }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div style="padding:48px;text-align:center;color:#94a3b8">
+            <div style="font-size:3rem">🔬</div>
+            <p style="margin-top:12px">No prediction history yet</p>
+            <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-sm" style="margin-top:12px">Make First Prediction</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Profile Summary -->
+      <div class="card mt-4">
+        <div class="card-header"><span class="card-title">👤 Patient Profile Summary</span></div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <table style="width:100%">
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem;width:140px">Name</td><td style="font-weight:600;font-size:.875rem">{{ user.name }}</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem">Email</td><td style="font-weight:600;font-size:.875rem">{{ user.email }}</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem">Phone</td><td style="font-weight:600;font-size:.875rem">{{ user.phone or 'N/A' }}</td></tr>
+              </table>
+            </div>
+            <div>
+              <table style="width:100%">
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem;width:140px">Age</td><td style="font-weight:600;font-size:.875rem">{{ user.age or 'N/A' }} years</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem">Gender</td><td style="font-weight:600;font-size:.875rem">{{ user.gender or 'N/A' }}</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:.82rem">Blood Group</td><td style="font-weight:600;font-size:.875rem">{{ user.blood_group or 'N/A' }}</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+{% if disease_counts %}
+const diseaseLabels = {{ disease_counts.keys()|list|tojson }};
+const diseaseCounts = {{ disease_counts.values()|list|tojson }};
+const colors = ['#0ea5e9','#10b981','#f59e0b','#ef4444','#a78bfa','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+
+new Chart(document.getElementById('diseaseChart'), {
+  type: 'doughnut',
+  data: {
+    labels: diseaseLabels,
+    datasets: [{ data: diseaseCounts, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+  }
+});
+{% endif %}
+
+{% if predictions %}
+const predLabels = {{ predictions|map(attribute='created_at')|map('string')|list|tojson }};
+const predConf   = {{ predictions|map(attribute='confidence')|list|tojson }};
+const cleanLabels = predLabels.map(d => d.substring(0,10));
+
+new Chart(document.getElementById('confidenceChart'), {
+  type: 'line',
+  data: {
+    labels: cleanLabels.reverse(),
+    datasets: [{
+      label: 'Confidence %',
+      data: predConf.reverse(),
+      borderColor: '#0ea5e9',
+      backgroundColor: 'rgba(14,165,233,.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#0ea5e9',
+      pointRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+{% endif %}
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – SmartHealthcare</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  {% include '_sidebar.html' %}
+
+  <!-- Main -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <span style="font-size:.82rem;color:#64748b">👋 Hello, {{ session.user_name }}</span>
+        <div class="user-avatar">{{ session.user_name[0].upper() }}</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">🔬</div>
+          <div>
+            <div class="stat-value">{{ total_preds }}</div>
+            <div class="stat-label">Total Predictions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📅</div>
+          <div>
+            <div class="stat-value">{{ total_apts }}</div>
+            <div class="stat-label">Appointments</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">👤</div>
+          <div>
+            <div class="stat-value">{{ user.age or '–' }}</div>
+            <div class="stat-label">Age (years)</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">🩸</div>
+          <div>
+            <div class="stat-value">{{ user.blood_group or '–' }}</div>
+            <div class="stat-label">Blood Group</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Recent Predictions -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔬 Recent Predictions</span>
+            <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-sm">+ New</a>
+          </div>
+          <div class="card-body" style="padding:0">
+            {% if predictions %}
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Disease</th><th>Confidence</th><th>Severity</th><th>Date</th></tr></thead>
+                <tbody>
+                {% for p in predictions %}
+                <tr>
+                  <td><strong>{{ p.disease }}</strong></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden">
+                        <div style="width:{{ p.confidence }}%;height:100%;background:linear-gradient(90deg,#0ea5e9,#10b981)"></div>
+                      </div>
+                      <span style="font-size:.78rem;font-weight:600">{{ p.confidence }}%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge badge-{{ p.severity.lower() }}">{{ p.severity }}</span>
+                  </td>
+                  <td style="font-size:.78rem;color:#64748b">{{ p.created_at.strftime('%d %b %Y') }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div style="padding:36px;text-align:center;color:#94a3b8">
+              <div style="font-size:2.5rem">🔬</div>
+              <p style="margin-top:10px">No predictions yet</p>
+              <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-sm" style="margin-top:10px">Make First Prediction</a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📅 Appointments</span>
+            <a href="{{ url_for('appointment') }}" class="btn btn-success btn-sm">+ Book</a>
+          </div>
+          <div class="card-body" style="padding:0">
+            {% if appointments %}
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Doctor</th><th>Dept</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for a in appointments %}
+                <tr>
+                  <td><strong>{{ a.doctor_name }}</strong></td>
+                  <td style="font-size:.8rem;color:#64748b">{{ a.department }}</td>
+                  <td style="font-size:.78rem">{{ a.date }}<br><span style="color:#94a3b8">{{ a.time }}</span></td>
+                  <td><span class="badge badge-{{ a.status.lower() }}">{{ a.status }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div style="padding:36px;text-align:center;color:#94a3b8">
+              <div style="font-size:2.5rem">📅</div>
+              <p style="margin-top:10px">No appointments booked</p>
+              <a href="{{ url_for('appointment') }}" class="btn btn-success btn-sm" style="margin-top:10px">Book Appointment</a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card mt-4">
+        <div class="card-header"><span class="card-title">⚡ Quick Actions</span></div>
+        <div class="card-body">
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <a href="{{ url_for('prediction') }}" class="btn btn-primary">🤖 Check Symptoms</a>
+            <a href="{{ url_for('appointment') }}" class="btn btn-success">📅 Book Appointment</a>
+            <a href="{{ url_for('reports') }}" class="btn btn-outline">📊 View Reports</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="card mt-4">
+        <div class="card-header"><span class="card-title">👤 My Profile</span></div>
+        <div class="card-body">
+          <div class="grid-2" style="gap:16px">
+            <div>
+              <div style="font-size:.75rem;color:#64748b;margin-bottom:4px">Full Name</div>
+              <div style="font-weight:600">{{ user.name }}</div>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:#64748b;margin-bottom:4px">Email</div>
+              <div style="font-weight:600">{{ user.email }}</div>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:#64748b;margin-bottom:4px">Phone</div>
+              <div style="font-weight:600">{{ user.phone or 'Not added' }}</div>
+            </div>
+            <div>
+              <div style="font-size:.75px;color:#64748b;margin-bottom:4px">Gender</div>
+              <div style="font-weight:600">{{ user.gender or 'Not specified' }}</div>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:#64748b;margin-bottom:4px">Member Since</div>
+              <div style="font-weight:600">{{ user.created_at.strftime('%d %B %Y') }}</div>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:#64748b;margin-bottom:4px">Blood Group</div>
+              <div style="font-weight:600">{{ user.blood_group or 'Not specified' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

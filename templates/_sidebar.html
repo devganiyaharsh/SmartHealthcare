@@ -1,0 +1,37 @@
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        SmartHealthcare
+        <small>AI Health Platform</small>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <span class="icon">🏠</span> Dashboard
+    </a>
+    <a href="{{ url_for('prediction') }}" class="nav-item {% if request.endpoint == 'prediction' %}active{% endif %}">
+      <span class="icon">🤖</span> AI Prediction
+    </a>
+    <a href="{{ url_for('appointment') }}" class="nav-item {% if request.endpoint == 'appointment' %}active{% endif %}">
+      <span class="icon">📅</span> Appointments
+    </a>
+    <a href="{{ url_for('reports') }}" class="nav-item {% if request.endpoint == 'reports' %}active{% endif %}">
+      <span class="icon">📊</span> Reports
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{{ url_for('logout') }}" class="nav-item" style="color:#ef4444">
+      <span class="icon">🚪</span> Logout
+    </a>
+    <div style="margin-top:14px;padding:12px;background:rgba(14,165,233,.1);border-radius:10px;border:1px solid rgba(14,165,233,.2)">
+      <div style="font-size:.7rem;color:#64748b">Logged in as</div>
+      <div style="font-size:.82rem;font-weight:600;color:#e2e8f0;margin-top:2px">{{ session.user_name }}</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartHealthcare – AI-Powered Health Management</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  .hero-visual {
+    background: linear-gradient(135deg, rgba(14,165,233,.15), rgba(16,185,129,.1));
+    border: 1px solid rgba(14,165,233,.2);
+    border-radius: 20px; padding: 36px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    max-width: 420px;
+  }
+  .mini-card {
+    background: rgba(255,255,255,.06); border-radius: 12px; padding: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .mini-card .val { font-size: 1.6rem; font-weight: 800; color: #0ea5e9; }
+  .mini-card .lbl { font-size: .72rem; color: #94a3b8; margin-top: 3px; }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .cta-section { background: linear-gradient(135deg, #0ea5e9, #10b981); padding: 60px; text-align: center; }
+  .cta-section h2 { font-size: 2rem; margin-bottom: 14px; }
+  .cta-section p  { font-size: 1rem; opacity: .9; margin-bottom: 28px; }
+  .footer { background: #0a0f1a; padding: 30px 60px; text-align: center; color: #475569; font-size: .85rem; }
+  .floating-badge {
+    position: absolute; top: -10px; right: -10px;
+    background: #10b981; color: white; font-size: .7rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="landing">
+
+  <!-- Navbar -->
+  <nav class="landing-nav">
+    <div class="logo" style="display:flex;align-items:center;gap:10px">
+      <div class="logo-icon" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏥</div>
+      <span style="font-family:Poppins,sans-serif;font-weight:700;font-size:1.2rem;color:white">SmartHealthcare</span>
+    </div>
+    <div class="nav-links">
+      <a href="{{ url_for('doctor_login') }}" class="btn btn-outline" style="color:#0ea5e9;border-color:rgba(14,165,233,.35)">🩺 Doctor Login</a>
+      <a href="{{ url_for('login') }}" class="btn btn-outline" style="color:#94a3b8;border-color:rgba(255,255,255,.2)">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="landing-hero" style="min-height:88vh">
+    <div class="hero-text">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);padding:6px 16px;border-radius:20px;margin-bottom:24px;">
+        <span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;display:inline-block"></span>
+        <span style="color:#0ea5e9;font-size:.82rem;font-weight:600">AI-Powered Disease Prediction</span>
+      </div>
+      <h1>Your Smart Health <span>Partner</span> is Here</h1>
+      <p>Detect diseases early using machine learning. Manage appointments, track your health history, and get specialist recommendations — all in one secure platform.</p>
+      <div class="hero-btns">
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">🚀 Start Free</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg" style="color:#94a3b8;border-color:rgba(255,255,255,.2)">Sign In →</a>
+        <a href="{{ url_for('doctor_login') }}" class="btn btn-outline btn-lg" style="color:#0ea5e9;border-color:rgba(14,165,233,.35)">🩺 Doctor Sign In</a>
+      </div>
+      <div style="margin-top:40px;display:flex;gap:32px">
+        <div><div style="font-size:1.6rem;font-weight:800;color:#0ea5e9;font-family:Poppins">15+</div><div style="font-size:.78rem;color:#64748b">Diseases Detected</div></div>
+        <div><div style="font-size:1.6rem;font-weight:800;color:#10b981;font-family:Poppins">95%</div><div style="font-size:.78rem;color:#64748b">Prediction Accuracy</div></div>
+        <div><div style="font-size:1.6rem;font-weight:800;color:#f59e0b;font-family:Poppins">24/7</div><div style="font-size:.78rem;color:#64748b">Available</div></div>
+      </div>
+    </div>
+
+    <div style="position:relative">
+      <div class="hero-visual">
+        <div class="mini-card" style="grid-column:1/-1">
+          <div style="font-size:.7rem;color:#64748b;margin-bottom:8px;font-weight:600">LATEST PREDICTION</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:1rem;font-weight:700;color:white">Flu Detected</div><div style="font-size:.75rem;color:#94a3b8">3 symptoms matched</div></div>
+            <div style="background:linear-gradient(135deg,#0ea5e9,#0369a1);padding:8px 14px;border-radius:8px;font-weight:700;color:white;font-size:.85rem">94.2%</div>
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="val">8</div>
+          <div class="lbl">Appointments</div>
+        </div>
+        <div class="mini-card">
+          <div class="val" style="color:#10b981">✓</div>
+          <div class="lbl">Health Reports</div>
+        </div>
+        <div class="mini-card">
+          <div class="val" style="color:#f59e0b">5</div>
+          <div class="lbl">Predictions Made</div>
+        </div>
+        <div class="mini-card">
+          <div class="val" style="color:#a78bfa">🛡️</div>
+          <div class="lbl">Secure & Private</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <h2>Everything You Need for <span style="color:#0ea5e9">Smart Healthcare</span></h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="f-icon">🤖</div>
+        <h3>AI Disease Prediction</h3>
+        <p>Select your symptoms and get instant AI-powered disease predictions with confidence scores and specialist recommendations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">📅</div>
+        <h3>Appointment Management</h3>
+        <p>Book, track and manage your doctor appointments. Get timely reminders and manage your schedule effortlessly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">📊</div>
+        <h3>Health Reports</h3>
+        <p>View comprehensive health reports with visual analytics. Track your health trends and past predictions over time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">🔒</div>
+        <h3>Secure & Private</h3>
+        <p>Your health data is encrypted and stored securely. We follow strict privacy guidelines to protect your information.</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">👨‍⚕️</div>
+        <h3>Specialist Suggestions</h3>
+        <p>Get AI-recommended medical specialists based on your symptoms and predicted condition for accurate treatment.</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">📱</div>
+        <h3>Responsive Design</h3>
+        <p>Access your health dashboard from any device — desktop, tablet, or mobile — with a clean, intuitive interface.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2 style="color:white">Start Managing Your Health Today</h2>
+    <p style="color:rgba(255,255,255,.9)">Join thousands of users who trust SmartHealthcare for early disease detection.</p>
+    <a href="{{ url_for('register') }}" class="btn btn-lg" style="background:white;color:#0ea5e9;font-weight:700">Create Free Account →</a>
+  </section>
+
+  <footer class="footer">
+    <p>© 2024 SmartHealthcare. Built with ❤️ using Flask & Machine Learning.</p>
+    <p style="margin-top:6px">Project by <strong style="color:#94a3b8">Harsh</strong> | GTU BE Computer Engineering</p>
+  </footer>
+
+</div>
+</body>
+</html>

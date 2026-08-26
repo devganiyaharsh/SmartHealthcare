@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor Dashboard - SmartHealthcare</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background:#f5f7fa; }
+  .badge-pending { background:#ffc107; color:#000; }
+  .badge-accepted { background:#198754; }
+  .badge-rejected { background:#dc3545; }
+  #toastArea { position:fixed; top:1rem; right:1rem; z-index:2000; width:320px; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-primary mb-4">
+  <div class="container">
+    <span class="navbar-brand">🩺 Dr. {{ doctor.name }} <small class="opacity-75">({{ doctor.department }})</small></span>
+    <span>
+      <span class="badge bg-light text-dark me-2" id="unreadBadge">{{ unread_count }} new</span>
+      <a href="{{ url_for('doctor_logout') }}" class="btn btn-sm btn-outline-light">Logout</a>
+    </span>
+  </div>
+</nav>
+
+<div id="toastArea"></div>
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="alert alert-{{ 'danger' if category=='danger' else category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <h5 class="mb-3">🔔 Pending Requests <span class="badge bg-warning text-dark">{{ pending|length }}</span></h5>
+  {% if pending %}
+    <div class="row g-3 mb-4">
+      {% for apt in pending %}
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title mb-1">{{ apt.patient.name }}</h6>
+            <p class="mb-1 text-muted small">{{ apt.date }} at {{ apt.time }}</p>
+            <p class="mb-2">{{ apt.reason }}</p>
+            <div class="d-flex gap-2">
+              <form method="POST" action="{{ url_for('accept_appointment', apt_id=apt.id) }}" class="flex-fill">
+                <button class="btn btn-success btn-sm w-100" type="submit">✅ Accept</button>
+              </form>
+              <form method="POST" action="{{ url_for('reject_appointment', apt_id=apt.id) }}" class="flex-fill">
+                <button class="btn btn-outline-danger btn-sm w-100" type="submit">❌ Reject</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No pending requests right now.</p>
+  {% endif %}
+
+  <h5 class="mb-3">📅 Upcoming (Accepted)</h5>
+  {% if upcoming %}
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered bg-white">
+      <thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Reason</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for apt in upcoming %}
+        <tr>
+          <td>{{ apt.patient.name }}</td>
+          <td>{{ apt.date }}</td>
+          <td>{{ apt.time }}</td>
+          <td>{{ apt.reason }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('complete_appointment', apt_id=apt.id) }}">
+              <button class="btn btn-sm btn-outline-primary">Mark Completed</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">No upcoming appointments.</p>
+  {% endif %}
+
+  <h5 class="mb-3">🕓 History</h5>
+  {% if history %}
+  <div class="table-responsive mb-5">
+    <table class="table table-sm bg-white">
+      <thead><tr><th>Patient</th><th>Date</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        {% for apt in history %}
+        <tr>
+          <td>{{ apt.patient.name }}</td>
+          <td>{{ apt.date }}</td>
+          <td><span class="badge badge-{{ apt.status|lower }}">{{ apt.status }}</span></td>
+          <td>{{ apt.doctor_note or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted mb-5">No history yet.</p>
+  {% endif %}
+</div>
+
+<script>
+// Live-poll for new appointment-request notifications every 15s
+async function pollNotifications() {
+  try {
+    const res = await fetch("{{ url_for('doctor_notifications') }}");
+    const data = await res.json();
+    document.getElementById('unreadBadge').innerText = data.count + ' new';
+    const area = document.getElementById('toastArea');
+    data.notifications.forEach(n => {
+      if (document.getElementById('toast-' + n.id)) return; // already shown
+      const div = document.createElement('div');
+      div.id = 'toast-' + n.id;
+      div.className = 'alert alert-info shadow-sm';
+      div.innerHTML = `<strong>New request</strong><br>${n.message}
+        <div class="text-end mt-1">
+          <button class="btn btn-sm btn-primary" onclick="location.reload()">View</button>
+        </div>`;
+      area.appendChild(div);
+      setTimeout(() => div.remove(), 10000);
+    });
+  } catch (e) { /* silent */ }
+}
+setInterval(pollNotifications, 15000);
+pollNotifications();
+</script>
+</body>
+</html>
